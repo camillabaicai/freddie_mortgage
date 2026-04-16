@@ -1,0 +1,5 @@
+outcome,model,feature_definition,train_rows,test_rows,n_model_input_features,test_event_rate,roc_auc,pr_auc,log_loss,brier_score
+prepay,l1_baseline_from_01,exact encoded features selected by L1,1430718,354444,25,0.010797,0.983966,0.731478,0.023385,0.005932
+prepay,spline_on_l1_source_vars,selected source variables from L1 with spline expansion on continuous variables,1430718,354444,77,0.010797,0.999848,0.986415,0.004439,0.000961
+default,l1_baseline_from_01,exact encoded features selected by L1,1424249,360913,17,0.000798,0.798036,0.004624,0.006101,0.000796
+default,spline_on_l1_source_vars,selected source variables from L1 with spline expansion on continuous variables,1424249,360913,70,0.000798,0.832383,0.012072,0.005655,0.000793
