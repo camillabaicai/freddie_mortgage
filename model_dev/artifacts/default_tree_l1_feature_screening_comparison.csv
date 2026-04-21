@@ -1,0 +1,9 @@
+both_selected,L1_only,tree_only
+unrate,gs10,credit_score
+loan_age,cpi_yoy,cpi
+mortgage_insurance_cancellation_indicator,spread_at_origination,pmms30
+occupancy_status,mortgage_insurance_percentage_mi_pct,original_upb
+mortgage_treasury_spread,number_of_borrowers,fhfa_hpi_yoy
+channel,current_interest_rate,vintage_group
+original_interest_rate,loan_purpose,first_time_homebuyer_flag
+,state_region,program_indicator

@@ -1,0 +1,3 @@
+outcome,model,train_rows,test_rows,n_features_raw,n_features_encoded,test_event_rate,roc_auc,pr_auc,log_loss,brier_score
+prepay,prepay_baseline,1430718,354444,35,46,0.010797,0.961537,0.438275,0.029569,0.007624
+default,default_baseline,1424249,360913,35,46,0.000798,0.783611,0.004871,0.006063,0.000796

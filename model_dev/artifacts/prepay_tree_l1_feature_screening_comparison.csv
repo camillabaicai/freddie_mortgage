@@ -1,0 +1,13 @@
+both_selected,L1_only,tree_only
+estimated_loan_to_value_eltv,mortgage_treasury_spread,current_interest_rate
+property_type,fhfa_hpi_yoy,state_region
+loan_age,dti,unrate
+number_of_units,,
+original_upb,,
+incentive_rate,,
+cpi,,
+fedfunds,,
+mortgage_insurance_cancellation_indicator,,
+gs10,,
+median_aqi,,
+occupancy_status,,

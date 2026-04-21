@@ -3,3 +3,7 @@ prepay,l1_baseline_from_01,exact encoded features selected by L1,1430718,354444,
 prepay,spline_on_l1_source_vars,selected source variables from L1 with spline expansion on continuous variables,1430718,354444,113,0.010797,0.96384,0.514306,0.027268,0.006938
 default,l1_baseline_from_01,exact encoded features selected by L1,1424249,360913,17,0.000798,0.798036,0.004624,0.006101,0.000796
 default,spline_on_l1_source_vars,selected source variables from L1 with spline expansion on continuous variables,1424249,360913,70,0.000798,0.832383,0.012072,0.005655,0.000793
+prepay,random_forest,baseline original source variables,1429805,355357,46,0.010769,0.969081,0.533129,0.106118,0.026366
+prepay,hist_gradient_boosting,baseline original source variables,1429805,355357,46,0.010769,0.972572,0.581481,0.159306,0.040392
+default,random_forest,baseline original source variables,1429880,355282,46,0.000811,0.850188,0.018184,0.031801,0.004708
+default,hist_gradient_boosting,baseline original source variables,1429880,355282,46,0.000811,0.885922,0.01887,0.330093,0.101834

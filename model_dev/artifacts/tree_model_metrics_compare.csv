@@ -1,0 +1,5 @@
+outcome,model,feature_definition,train_rows_available,train_rows_fit,test_rows,n_features_raw,n_features_encoded,test_event_rate,roc_auc,pr_auc,log_loss,brier_score
+prepay,random_forest,baseline original source variables,1429805,1429805,355357,35,46,0.010769,0.969081,0.533129,0.106118,0.026366
+prepay,hist_gradient_boosting,baseline original source variables,1429805,1429805,355357,35,46,0.010769,0.972572,0.581481,0.159306,0.040392
+default,random_forest,baseline original source variables,1429880,1429880,355282,35,46,0.000811,0.850188,0.018184,0.031801,0.004708
+default,hist_gradient_boosting,baseline original source variables,1429880,1429880,355282,35,46,0.000811,0.885922,0.01887,0.330093,0.101834

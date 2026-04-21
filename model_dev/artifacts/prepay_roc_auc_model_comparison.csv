@@ -1,0 +1,6 @@
+model,n_model_input_features,roc_auc
+Baseline logistic-style model,46,0.961537
+L1 selected model,33,0.961675
+Cubic spline model,113,0.96384
+Random Forest,46,0.969081
+Histogram Gradient Boosting,46,0.972572
