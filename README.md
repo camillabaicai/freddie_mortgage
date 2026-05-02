@@ -1,6 +1,6 @@
 # Freddie Mac Mortgage Risk Modeling
 
-This repository builds loan-month panel datasets from Freddie Mac mortgage data, merges macroeconomic and environmental features, and compares several default and prepayment prediction models.
+This repository builds loan-month panel datasets from Freddie Mac mortgage data, merges macroeconomic and environmental features, and compares linear, spline, tree, neural-network, and exploratory representation-learning approaches for mortgage default and prepayment prediction.
 
 The current modeling workflow focuses on two binary monthly outcomes:
 
@@ -13,12 +13,19 @@ The current modeling workflow focuses on two binary monthly outcomes:
 data/
   step_1_mortgage_data_creation_and_analysis_origination.ipynb
   step_2_performance_data_creation_and_analysis.ipynb
+  process_air_data.ipynb
   step_3_Merge_other_data.ipynb
 
 model_dev/
   01_Feature_Selection_and_baseline.ipynb
   02_Model_options_Cubic_Spline.ipynb
   03_Model_options_Trees.ipynb
+  04_Model_options_neural_network.ipynb
+  05_Unsupervised/
+    lda_panel_analysis.py
+    lda_panel_prepay_analysis.py
+    umap_panel_analysis.py
+    umap_panel_prepay_analysis.py
   artifacts/
 
 src/
@@ -61,6 +68,20 @@ processed_mortgage/panel_prepay_modeling_2016_2025.parquet
 ```
 
 This notebook labels the first observed event per loan and keeps loan-month rows up to the first event or censoring month.
+
+### Optional: Air Data and AQI EDA
+
+Notebook: `data/process_air_data.ipynb`
+
+This companion notebook reads annual county-level AQI CSV files from `data/air data/`, merges them for exploratory analysis, creates derived shares such as `Good Days % of Total`, and summarizes state-year air-quality patterns using metrics such as median AQI.
+
+Figure outputs are written under:
+
+```text
+figures/air data/
+```
+
+The macro merge notebook below also reads annual AQI county files and collapses them to state-year median AQI for the modeling panels.
 
 ### 3. Macro, HPI, and AQI Merge
 
@@ -141,13 +162,76 @@ model_dev/artifacts/prepay_tree_l1_feature_screening_comparison.csv
 model_dev/artifacts/default_tree_l1_feature_screening_comparison.csv
 ```
 
+### Notebook 04: Neural Network Model
+
+Notebook: `model_dev/04_Model_options_neural_network.ipynb`
+
+This notebook reads the engineered feature panels for default and prepay, applies the same loan-level train/test split idea used elsewhere, and fits an `MLPClassifier` with hidden layers `(40, 20, 10)`.
+
+The workflow:
+
+- loads engineered feature panels from `data/default_fe.parquet` and `data/prepay_fe.parquet` in the current notebook version; adjust these paths if your cleaned panels remain under `processed_mortgage/cleaned/`
+- drops leakage-prone identifiers and servicing columns such as `current_actual_upb`
+- imputes numeric and categorical features
+- one-hot encodes categorical columns
+- rescales the design matrix with `MaxAbsScaler`
+- evaluates held-out ROC-AUC, PR-AUC, log loss, and Brier score
+- saves SHAP explainers and loss-curve plots
+
+Key outputs:
+
+```text
+figures/default_loss_curve.png
+figures/prepay_loss_curve.png
+data/default_explainer.pkl
+data/prepay_explainer.pkl
+```
+
+Create `figures/` first if it does not already exist in your local setup.
+
+## Exploratory Representation Learning
+
+The `model_dev/05_Unsupervised/` scripts are optional diagnostics rather than part of the core supervised benchmark table.
+
+They currently expect local copies or symlinks of the macro-merged panel files under:
+
+```text
+model_dev/05_Unsupervised/data2/panel_default_with_macro.parquet
+model_dev/05_Unsupervised/data2/panel_prepay_with_macro.parquet
+```
+
+Their plots are written under:
+
+```text
+model_dev/05_Unsupervised/processed_mortgage/
+```
+
+### UMAP + KMeans Scripts
+
+- `umap_panel_analysis.py`: standardizes nine continuous panel features, assigns KMeans clusters, profiles cluster composition, and exports 2-D UMAP plots colored by cluster, monthly default status, and origination channel.
+- `umap_panel_prepay_analysis.py`: applies the same workflow for `y_prepay`, including silhouette-based cluster selection on a sample and 2-D UMAP diagnostics for prepayment behavior.
+
+### Discriminant Analysis Scripts
+
+- `lda_panel_analysis.py`: explores one-dimensional supervised separation for default using flexible discriminant analysis and kernel-LDA style projections.
+- `lda_panel_prepay_analysis.py`: fits one-dimensional LDA and kernel-LDA style projections for prepay and prints ranked coefficient loadings.
+
+Example commands:
+
+```bash
+python model_dev/05_Unsupervised/umap_panel_analysis.py
+python model_dev/05_Unsupervised/umap_panel_prepay_analysis.py
+python model_dev/05_Unsupervised/lda_panel_analysis.py
+python model_dev/05_Unsupervised/lda_panel_prepay_analysis.py
+```
+
 ## Evaluation Setup
 
 Models are evaluated using a loan-level train/test split. All monthly rows for a loan stay either in train or test, preventing the same loan from appearing in both sets.
 
 The split is stratified by loan-level ever-event status so rare events, especially default, are represented similarly in train and test.
 
-Metrics saved across notebooks include:
+Metrics saved across the supervised modeling notebooks include:
 
 - ROC-AUC
 - PR-AUC / average precision
@@ -165,6 +249,7 @@ The compact comparison tables below focus on ROC-AUC.
 | Baseline logistic-style model | 46 | 0.961537 |
 | L1 selected model | 33 | 0.961675 |
 | Cubic spline model | 113 | 0.963840 |
+| Neural network (MLP) | 46 | 0.966200 |
 | Random Forest | 46 | 0.969081 |
 | Histogram Gradient Boosting | 46 | 0.972572 |
 
@@ -175,16 +260,17 @@ The compact comparison tables below focus on ROC-AUC.
 | Baseline logistic-style model | 46 | 0.783611 |
 | L1 selected model | 17 | 0.798036 |
 | Cubic spline model | 70 | 0.832383 |
+| Neural network (MLP) | 46 | 0.802000 |
 | Random Forest | 46 | 0.850188 |
 | Histogram Gradient Boosting | 46 | 0.885922 |
 
 `Input features` refers to the model design-matrix feature count after one-hot encoding or spline expansion, not simply raw source-variable count.
 
-## Feature Importance
+## Model Interpretation
 
 Tree importance is computed with held-out permutation importance using average precision scoring. This is useful for rare-event outcomes because it measures how much PR-AUC drops when an original source variable is shuffled.
 
-Saved plots:
+Saved tree-model plots:
 
 - `model_dev/artifacts/prepay_top15_variable_importance.png`
 - `model_dev/artifacts/default_top15_variable_importance.png`
@@ -200,43 +286,51 @@ Each table has three columns:
 - `L1_only`
 - `tree_only`
 
+Notebook 04 also displays a top-15 SHAP bar summary during execution and saves reusable SHAP explainer objects under `data/`.
+
 ## Suggested Run Order
 
-Run notebooks in this order:
+Run the core data and supervised modeling notebooks in this order:
 
 1. `data/step_1_mortgage_data_creation_and_analysis_origination.ipynb`
 2. `data/step_2_performance_data_creation_and_analysis.ipynb`
-3. `data/step_3_Merge_other_data.ipynb`
-4. `model_dev/01_Feature_Selection_and_baseline.ipynb`
-5. `model_dev/02_Model_options_Cubic_Spline.ipynb`
-6. `model_dev/03_Model_options_Trees.ipynb`
+3. Optional AQI EDA: `data/process_air_data.ipynb`
+4. `data/step_3_Merge_other_data.ipynb`
+5. `model_dev/01_Feature_Selection_and_baseline.ipynb`
+6. `model_dev/02_Model_options_Cubic_Spline.ipynb`
+7. `model_dev/03_Model_options_Trees.ipynb`
+8. `model_dev/04_Model_options_neural_network.ipynb`
 
-If you change leakage exclusions, feature engineering, or target definitions, rerun notebooks 01 through 03 so the model artifacts stay consistent.
+The optional `05_Unsupervised` scripts can be run after Step 3 once the macro-merged panel files are available under `model_dev/05_Unsupervised/data2/`.
+
+If you change leakage exclusions, feature engineering, or target definitions, rerun the downstream notebooks and scripts that depend on those outputs so the model artifacts stay consistent.
 
 ## Environment
 
-The notebooks use Python with common data-science packages:
+The notebooks and scripts use Python with common data-science packages:
 
 ```text
 pandas
 numpy
 matplotlib
+seaborn
 scikit-learn
 scipy
 pyarrow
 requests
 openpyxl
 jupyter
+shap
+umap-learn
 ```
 
 Install example:
 
 ```bash
-pip install pandas numpy matplotlib scikit-learn scipy pyarrow requests openpyxl jupyter
+pip install pandas numpy matplotlib seaborn scikit-learn scipy pyarrow requests openpyxl jupyter shap umap-learn
 ```
 
 ## Notes
 
 - Raw Freddie Mac data and large processed parquet files are not stored in this repository.
-- Several notebooks currently use absolute local paths. Update these paths before running elsewhere.
-- The project is exploratory and notebook-driven; the authoritative outputs are the CSV and PNG files under `model_dev/artifacts/`.
+- Several notebook and script paths are local-machine specific or relative to the current working directory. Adjust `ROOT`, `PROC`, and local parquet paths when reproducing the workflow on another machine.
